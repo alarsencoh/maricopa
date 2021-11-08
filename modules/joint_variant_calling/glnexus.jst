@@ -1,0 +1,31 @@
+{% macro glnexus(tuple, input_type) %}
+
+{% set temp_dir %}temp/joint_variant_calling/{{ input_type }}/{{ tuple.name }}{% endfor %}
+{% set results_dir %}joint_variant_calling/{{ input_type }}/{{ tuple.name }}{% endfor %}
+
+- name: glnexus_{{ tuple.name }}_{{ input_type }}
+  output: 
+  tags: [rsync,]
+  cpus: 8
+  mem: 80G
+  walltime: "3-00:00:00"
+  docker_image: {{ constants.tools.glnexus.docker }}
+  cmd: |
+    set -euo pipefail
+
+    mkdir -p {{ temp_dir }}/{{ tuple.name }}_glnexus_db
+
+    {% for sample in tuple %}
+    echo {{ sample.input_type }} >> {{ temp_dir }}/{{ tuple.name }}_gvcf_list.txt
+    {% endfor %}
+
+    rm -r {{ temp_dir }}/{{ tuple.name }}_glnexus_db &>/dev/null || true
+    
+    glnexus_cli \
+      --threads 8 \
+      --mem-gbytes 80 \
+      --dir {{ temp_dir }}/{{ tuple.name }}_glnexus_db \
+      --config {{ input_type }} \
+      --bed {{ bed_file }} \
+      --list {{ temp_dir }}/{{ tuple.name }}_gvcf_list.txt \
+      > {{ results_dir }}/{{ tuple.name }}.bcf

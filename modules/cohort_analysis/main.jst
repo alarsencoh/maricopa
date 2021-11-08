@@ -1,0 +1,7 @@
+{% from 'modules/cohort_analysis/snpsniffer.jst' import snpsniffer with context %}
+
+{% macro cohort_analysis(samples) %}
+
+{% if tasks.cohort_analysis_snpsniffer | default(true) %}
+    {{- snpsniffer(samples) }}
+{% endif %}

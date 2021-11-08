@@ -1,0 +1,15 @@
+{% from 'modules/joint_variant_calling/glnexus.jst' import glnexus with context %}
+{# {% from 'modules/joint_variant_calling/deepvariant.jst' import deepvariant with context %} #}
+
+{% macro joint_variant_calling(samples) %}
+
+
+
+{% if tuple.gltype == 'exome' %}
+  {% set input_type = 'DeepVariantWES' %}
+{% elif tuple.gltype == 'genome' %}
+  {% set input_type = 'DeepVariantWGS' %}
+{% endif %}
+
+{{- glnexus(tuple, input_type) }}
+

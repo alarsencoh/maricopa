@@ -1,0 +1,27 @@
+__pipeline__:
+  name: maricopa
+  main: main.jst
+  description: Family and cohort analysis suite
+  version: v0.0.1
+constants:
+  tools:
+    base:
+      docker: /packages/easy-build/containers/Phoenix2.0/baseimage.sif
+      singularity: /packages/easy-build/containers/Phoenix2.0/baseimage.sif
+    deepvariant-cpu:
+      docker: docker://google/deepvariant:"1.2.0"
+      singularity: /packages/easy-build/containers/Phoenix2.0/variant_callers-deepvariant-cpu-1.2.0.sif
+    deepvariant-gpu:
+      docker: docker://google/deepvariant:"1.2.0-gpu"
+      singularity: /packages/easy-build/containers/Phoenix2.0/variant_callers-deepvariant-gpu-1.2.0.sif
+    glnexus:
+      docker: 
+      singularity: /packages/easy-build/containers/GLnexus-1.4.1.sif
+    sigprofiler:
+      docker:
+      singularity: /packages/easy-build/containers/Phoenix2.0/SigProfiler-1.2.0.sif
+    snpsniffer:
+      docker: /packages/easy-build/containers/Phoenix2.0/qc-bam_qc_snpsniffer.sif
+      singularity: /packages/easy-build/containers/Phoenix2.0/qc-bam_qc_snpsniffer.sif
+  maricopa:
+    
