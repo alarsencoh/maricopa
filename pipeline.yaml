@@ -15,10 +15,10 @@ constants:
       docker: docker://google/deepvariant:"1.2.0-gpu"
       singularity: /packages/easy-build/containers/Phoenix2.0/variant_callers-deepvariant-gpu-1.2.0.sif
     glnexus:
-      docker: 
+      docker: /packages/easy-build/containers/GLnexus-1.4.1.sif
       singularity: /packages/easy-build/containers/GLnexus-1.4.1.sif
     sigprofiler:
-      docker:
+      docker: /packages/easy-build/containers/Phoenix2.0/SigProfiler-1.2.0.sif
       singularity: /packages/easy-build/containers/Phoenix2.0/SigProfiler-1.2.0.sif
     snpsniffer:
       docker: /packages/easy-build/containers/Phoenix2.0/qc-bam_qc_snpsniffer.sif

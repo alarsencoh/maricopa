@@ -1,39 +1,28 @@
-
-{# Tasks contains switches for toggling many of the features #}
 {% if tasks is not defined %}
     {% set tasks = {} %}
 {% endif %}
 
-{# submissionSource toggles specific tasks based on how they were submitted #}
-{% if submissionSource is not defined %}
-    {% set submissionSource = "unknown" %}
-{% endif %}
-
 {% from 'utilities/rsync_datafiles.jst' import rsync_sample_datafiles with context %}
-{% from 'utilities/finalize.jst' import finalize with context %}
-{% from 'modules/joint_variant_calling/main.jst' import joint_variant_calling with context %}
 {% from 'modules/cohort_analysis/main.jst' import cohort_analysis with context %}
+{% from 'modules/joint_variant_calling/main.jst' import joint_variant_calling with context %}
 
 {% set samples = {} %}
 
 {% for file in dataFiles %}
-    {% if 'sampleMergeKey' in file %}
-        {% set name = file.sampleMergeKey %}
-    {% else %}
-        {% set name = file.sampleName %}
-    {% endif %}
-
+    {% set name %}{{ file.sampleMergeKey }}{% endset %}
     {% do file.update({'name': name}) %}
+    
+    {% if file.glType is defined %}
     {% do file.update({'gltype': file.glType.lower()}) %}
+    {% endif %}
+    
+    {% if file.glPrep is defined %}
     {% do file.update({'glprep': file.glPrep.lower()}) %}
-
-    {% if 'subGroup' not in file %}
-        {% do file.update({'subGroup': 'constitutional'}) %}
     {% endif %}
 
     {# Setting up expected paths #}
     {% if tasks.cohort_analysis_snpsniffer | default(true) %}
-        {% set snpsniffer_vcf %}{{ file.gltype }}/alignment/{{ file.aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ file.aligner }}.bam.snpSniffer.vcf{% endset %}
+        {% set snpsniffer_vcf %}{{ file.patientID }}/{{ file.gltype }}/alignment/{{ file.aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ file.aligner }}.bam.snpSniffer.vcf{% endset %}
         {% do file.update({'snpsniffer_vcf': snpsniffer_vcf}) %}
     {% endif %}
     {#
@@ -41,33 +30,27 @@
         {% set sigprofiler_vcf %}{{ file.gltype }}/alignment/{{ aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ aligner }}.bam.snpSniffer.vcf{% endset %}
         {% do file.update({'sigprofiler_vcf': sigprofiler_vcf}) %}
     {% endif %}
+
     {% if tasks.joint_variant_calling_deepvariant | default(true) %}
         {% set snpsniffer_vcf %}{{ file.gltype }}/alignment/{{ aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ aligner }}.bam.snpSniffer.vcf{% endset %}
         {% do file.update({'snpsniffer_vcf': snpsniffer_vcf}) %}
     {% endif %}
     #}
     {% if tasks.joint_variant_calling_glnexus_deepvariant | default(true) %}
-        {% set deepvariant_gvcf %}{{ file.gltype }}/constitutional_variant_calls/deepvariant/{{ file.name }}/{{ file.name }}.{{ file.aligner }}.deepvariant.all.g.vcf.gz{% endset %}
+        {% set deepvariant_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/deepvariant/{{ file.name }}/{{ file.name }}.{{ file.aligner }}.deepvariant.all.g.vcf.gz{% endset %}
         {% do file.update({'deepvariant_gvcf': deepvariant_gvcf}) %}
     {% endif %}
     {% if tasks.joint_variant_calling_glnexus_haplotypecaller | default(true) %}
-        {% set haplotypecaller_gvcf %}{{ file.gltype }}/constitutional_variant_calls/deepvariant/{{ file.name }}/{{ file.name }}.{{ file.aligner }}.hc.g.vcf.gz{% endset %}
+        {% set haplotypecaller_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/haplotypecaller/{{ file.name }}/{{ file.name }}.{{ file.aligner }}.hc.g.vcf.gz{% endset %}
         {% do file.update({'haplotypecaller_gvcf': haplotypecaller_gvcf}) %}
     {% endif %}
 
     {% if name not in samples %}
         {% do samples.update({name: {}}) %}
         {% do samples[name].update(file) %}
-        {% do samples[name].update({"name": name}) %}
     {% endif %}
 {% endfor %}
 
-{# Copy data files to project dir #}
-{{- rsync_sample_datafiles(samples) }}
-
-{# Start of module calls #}
-{#
-{{- joint_variant_calling(samples) }}
-#}
-
 {{- cohort_analysis(samples) }}
+
+{{- joint_variant_calling(samples) }}

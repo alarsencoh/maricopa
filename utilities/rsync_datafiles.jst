@@ -1,23 +1,26 @@
-{% macro rsync_sample_datafiles(samples) %}
+{% macro rsync_sample_datafiles(samples, filetype, location) %}
 
-- name: rsync_{{ study }}
+- name: rsync_{{ filetype }}_{{ study }}
+  input:
+    {% for sample in samples.values() %}
+    - {{ isilonPath }}/{{ sample[filetype] }}
+    {% endfor %}
   output:
-    {% for sample in samples %} 
-    - temp/cohort_analysis/snpsniffer/{{ sample.snpsniffer_vcf | basename }} 
+    {% for sample in samples.values() %}
+    - {{ location }}/{{ sample[filetype] | basename }}
     {% endfor %}
   tags: [rsync,]
   sbatch_args: ['-p', 'overflow,defq']
-  retry: 2
   cpus: 6
   walltime: "4:00:00"
-  docker_image: {{ constants.tools.base.image }}
+  docker_image: {{ constants.tools.base.docker }}
   cmd: |
-    set -uev
+    set -euo pipefail
 
-    mkdir -p temp/cohort_analysis/snpsniffer/{{ study_name }}
-    
-    {% for sample in samples %}
-    rsync {{ isilonPath }}/{{ sample.project }}/{{ sample.snpsniffer_vcf }} temp/cohort_analysis/snpsniffer/{{ study_name }}
+    mkdir -p {{ location }}
+
+    {% for sample in samples.values() %}
+    cp {{ isilonPath }}/{{ sample[filetype] }} {{ location }}
     {% endfor %}
 
 {% endmacro %}

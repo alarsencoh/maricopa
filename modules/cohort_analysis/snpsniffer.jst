@@ -1,13 +1,13 @@
-{% macro snpsniffer(samples, study_name) %}
+{% macro snpsniffer(samples) %}
 
 {% set snpsniffer_db %}/home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/tool_resources/snpSniffer/databaseV5_hg38_ucsc.ini{% endset %}
-{% set temp_dir %}temp/cohort_analysis/snpsniffer/{{ study_name }}{% endset %}
-{% set results_dir %}cohort_analysis/snpsniffer/{{ study_name }}{% endset %}
+{% set temp_dir %}temp/cohort_analysis/snpsniffer/{{ study }}{% endset %}
+{% set results_dir %}cohort_analysis/snpsniffer/{{ study }}{% endset %}
 
-- name: snpsniffer_{{ study_name }}
+- name: snpsniffer_{{ study }}
   input:
-    {% for sample in samples %} 
-    - temp/cohort_analysis/snpsniffer/{{ study_name }}/{{ sample.name }}.{{ aligner }}.bam.snpSniffer.vcf
+    {% for sample in samples.values() %} 
+    - temp/cohort_analysis/snpsniffer/{{ study }}/{{ sample.name }}.{{ sample.aligner }}.bam.snpSniffer.vcf
     {% endfor %}
   output:
     - {{ results_dir }}/SnpSniffer_AllPairs_Summary.tsv
@@ -28,14 +28,14 @@
   walltime: "4:00:00"
   docker_image: {{ constants.tools.snpsniffer.docker }}
   cmd: |
-    set -euo pipefail
+    set -eu
 
     {# remove database if it already exists #}
-    rm {{ temp_dir }}/SnpSniffer_DB.ini
+    rm {{ temp_dir }}/SnpSniffer_DB.ini || true
 
     mkdir -p {{ results_dir}}
 
-    rsync {{ snpsniffer_db }} {{ temp_dir }}/SnpSniffer_DB.ini
+    cp {{ snpsniffer_db }} {{ temp_dir }}/SnpSniffer_DB.ini
 
     cd {{ temp_dir }}
 
@@ -148,3 +148,5 @@
     mv {{ temp_dir }}/SnpSniffer_MatchRatio_ByAssayPairType_SharedCalls20plus.png {{ results_dir }}
     mv {{ temp_dir }}/SnpSniffer_HetRate_ByAssayType_All.png {{ results_dir }}
     mv {{ temp_dir }}/SnpSniffer_Genotypes_ByAssayType_All.png {{ results_dir }}
+
+{% endmacro %}
