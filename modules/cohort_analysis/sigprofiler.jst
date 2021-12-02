@@ -1,0 +1,47 @@
+
+{% macro sigprofiler(samples, gltype) %}
+
+{% set temp_dir %}temp/{{ gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
+{% set results_dir %}{{ gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
+{% set output_vcf %}{{ results_dir }}/{{ family.name }}.bcf{% endset %}
+
+- name: glnexus_{{ family.name }}_{{ config_type }}
+  input:
+    {% for member in family.members %}
+    - {{ temp_dir }}/{{ member[input_type] | basename }}
+    {% endfor %}
+  output: {{ output_vcf }}
+  tags: [glnexus, joint_variant_calling, ]
+  cpus: 8
+  mem: 40G
+  walltime: "3-00:00:00"
+  docker_image: {{ constants.tools.glnexus.docker }}
+  cmd: |
+    set -euo pipefail
+
+    mkdir -p {{ results_dir }}/{{ family.name }}_glnexus_db
+
+    rm -r {{ temp_dir }}/{{ family.name }}_glnexus_db &>/dev/null || true
+    rm {{ temp_dir }}/{{ family.name }}_gvcf_list.txt || true
+
+    {% for member in family.members %}
+    echo {{ temp_dir }}/{{ member[input_type] | basename }} >> {{ temp_dir }}/{{ family.name }}_gvcf_list.txt
+    {% endfor %}
+
+    rm -r {{ temp_dir }}/{{ family.name }}_glnexus_db &>/dev/null || true
+    
+    glnexus_cli \
+      --threads 8 \
+      --mem-gbytes 40 \
+      --dir {{ temp_dir }}/{{ family.name }}_glnexus_db \
+      --config {{ config_type }} \
+      --list {{ temp_dir }}/{{ family.name }}_gvcf_list.txt \
+      > {{ results_dir }}/{{ family.name }}.bcf
+
+    bcftools index {{ results_dir }}/{{ family.name }}.bcf
+
+{% if tasks.joint_variant_calling_somalier | default(true) %}
+  {{- somalier(family, config_type, output_vcf) }}
+{% endif %}
+
+{% endmacro %}

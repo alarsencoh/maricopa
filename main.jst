@@ -9,7 +9,7 @@
 {% set samples = {} %}
 
 {% for file in dataFiles %}
-    {% set name %}{{ file.sampleMergeKey }}{% endset %}
+    {% set name %}{{ file.rgsm }}{% endset %}
     {% do file.update({'name': name}) %}
     
     {% if file.glType is defined %}
@@ -20,30 +20,40 @@
     {% do file.update({'glprep': file.glPrep.lower()}) %}
     {% endif %}
 
-    {# Setting up expected paths #}
-    {% if tasks.cohort_analysis_snpsniffer | default(true) %}
-        {% set snpsniffer_vcf %}{{ file.patientID }}/{{ file.gltype }}/alignment/{{ file.aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ file.aligner }}.bam.snpSniffer.vcf{% endset %}
-        {% do file.update({'snpsniffer_vcf': snpsniffer_vcf}) %}
-    {% endif %}
-    {#
-    {% if tasks.cohort_analysis_sigprofiler | default(true) %}
-        {% set sigprofiler_vcf %}{{ file.gltype }}/alignment/{{ aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ aligner }}.bam.snpSniffer.vcf{% endset %}
-        {% do file.update({'sigprofiler_vcf': sigprofiler_vcf}) %}
+    {% if file.sex is defined %}
+        {% if file.sex.lower() == 'male' %}
+            {% do file.update({'sex': 1}) %}
+        {% elif file.sex.lower() == 'female' %}
+            {% do file.update({'sex': 2}) %}
+        {% else %}
+            {% do file.update({'sex': 0}) %}
+        {% endif %}
+    {% else %}
+        {% do file.update({'sex': 0}) %}
     {% endif %}
 
-    {% if tasks.joint_variant_calling_deepvariant | default(true) %}
-        {% set snpsniffer_vcf %}{{ file.gltype }}/alignment/{{ aligner }}/{{ file.name }}/stats/{{ file.name }}.{{ aligner }}.bam.snpSniffer.vcf{% endset %}
-        {% do file.update({'snpsniffer_vcf': snpsniffer_vcf}) %}
+    {% if file.phenotype is defined %}
+        {% if file.phenotype.lower() == 'unaffected' %}
+            {% do file.update({'phenotype': 1}) %}
+        {% elif file.phenotype.lower() == 'affected' %}
+            {% do file.update({'phenotype': 2}) %}
+        {% else %}
+            {% do file.update({'phenotype': 0}) %}
+        {% endif %}
+    {% else %}
+        {% do file.update({'phenotype': 0}) %}
     {% endif %}
-    #}
-    {% if tasks.joint_variant_calling_glnexus_deepvariant | default(true) %}
-        {% set deepvariant_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/deepvariant/{{ file.name }}/{{ file.name }}.{{ file.aligner }}.deepvariant.all.g.vcf.gz{% endset %}
-        {% do file.update({'deepvariant_gvcf': deepvariant_gvcf}) %}
-    {% endif %}
-    {% if tasks.joint_variant_calling_glnexus_haplotypecaller | default(true) %}
-        {% set haplotypecaller_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/haplotypecaller/{{ file.name }}/{{ file.name }}.{{ file.aligner }}.hc.g.vcf.gz{% endset %}
-        {% do file.update({'haplotypecaller_gvcf': haplotypecaller_gvcf}) %}
-    {% endif %}
+
+    {# Setting up expected paths #}
+    {% set snpsniffer_vcf %}{{ file.patientID }}/{{ file.gltype }}/alignment/{{ file.aligner }}/{{ file.sampleMergeKey }}/stats/{{ file.sampleMergeKey }}.{{ file.aligner }}.bam.snpSniffer.vcf{% endset %}
+    {% set sigprofiler_vcf %}{{ file.gltype }}/alignment/{{ aligner }}/{{ file.sampleMergeKey }}/stats/{{ file.sampleMergeKey }}.{{ aligner }}.bam.snpSniffer.vcf{% endset %}
+    {% set deepvariant_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/deepvariant/{{ file.sampleMergeKey }}/{{ file.sampleMergeKey }}.{{ file.aligner }}.deepvariant.all.g.vcf.gz{% endset %}
+    {% set haplotypecaller_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/haplotypecaller/{{ file.sampleMergeKey }}/{{ file.sampleMergeKey }}.{{ file.aligner }}.hc.g.vcf.gz{% endset %}
+    
+    {% do file.update({'snpsniffer_vcf': snpsniffer_vcf}) %}
+    {% do file.update({'sigprofiler_vcf': sigprofiler_vcf}) %}
+    {% do file.update({'deepvariant_gvcf': deepvariant_gvcf}) %}
+    {% do file.update({'haplotypecaller_gvcf': haplotypecaller_gvcf}) %}
 
     {% if name not in samples %}
         {% do samples.update({name: {}}) %}

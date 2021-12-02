@@ -1,9 +1,12 @@
-{% macro rsync_sample_datafiles(samples, filetype, location) %}
+{% macro rsync_sample_datafiles(samples, tool, filetype, location) %}
 
-- name: rsync_{{ filetype }}_{{ study }}
+- name: rsync_{{ tool }}_{{ filetype }}_{{ study }}
   input:
     {% for sample in samples.values() %}
     - {{ isilonPath }}/{{ sample[filetype] }}
+    {% if sample[filetype].endswith('vcf.gz') %}
+    - {{ isilonPath }}/{{ sample[filetype] }}.tbi
+    {% endif %}
     {% endfor %}
   output:
     {% for sample in samples.values() %}
@@ -20,7 +23,10 @@
     mkdir -p {{ location }}
 
     {% for sample in samples.values() %}
-    cp {{ isilonPath }}/{{ sample[filetype] }} {{ location }}
+      cp {{ isilonPath }}/{{ sample[filetype] }} {{ location }}
+      {% if sample[filetype].endswith('vcf') %}
+        cp {{ isilonPath }}/{{ sample[filetype] }}.tbi {{ location }}
+      {% endif %}
     {% endfor %}
 
 {% endmacro %}

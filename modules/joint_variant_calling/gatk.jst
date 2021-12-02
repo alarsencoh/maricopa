@@ -1,0 +1,61 @@
+{% from 'modules/joint_variant_calling/somalier.jst' import somalier with context %}
+{% from 'modules/joint_variant_calling/bcftools_filter.jst' import dnm_filter with context %}
+
+{% macro gatk_joint_genotype(family, input_type) %}
+
+{% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/gatk/{{ family.name }}{% endset %}
+{% set results_dir %}{{ family.gltype }}/joint_variant_calling/gatk/{{ family.name }}{% endset %}
+{% set output_vcf %}{{ results_dir }}/{{ family.name }}.combined.vcf.gz{% endset %}
+{% set source_pipeline, source_version = pipeline.split('@') %}
+
+- name: gatk_combine_gvcfs_{{ family.name }}
+  input:
+    {% for member in family.members %}
+    - {{ temp_dir }}/{{ member[input_type] | basename }}
+    {% endfor %}
+  output: {{ temp_dir }}/{{ family.name }}.g.vcf.gz
+  tags: [gatk, joint_variant_calling, ]
+  cpus: 4
+  mem: 16G
+  walltime: "1-00:00:00"
+  docker_image: {{ constants.tools.gatk.docker }}
+  cmd: |
+    set -euo pipefail
+
+    mkdir -p {{ temp_dir }}
+    
+    gatk --java-options "-Xmx16g" CombineGVCFs \
+      {% for member in family.members %}
+      -V {{ temp_dir }}/{{ member[input_type] | basename }} \
+      {% endfor %}
+      -R {{ constants.maricopa[source_pipeline].reference_fa }} \
+      -O {{ temp_dir }}/{{ family.name }}.g.vcf.gz
+
+- name: gatk_genotype_combined_gvcf_{{ family.name }}
+  input: {{ temp_dir }}/{{ family.name }}.g.vcf.gz
+  output: {{ results_dir }}/{{ family.name }}.combined.vcf
+  tags: [gatk, joint_variant_calling, ]
+  cpus: 4
+  mem: 16G
+  walltime: "1-00:00:00"
+  docker_image: {{ constants.tools.gatk.docker }}
+  cmd: |
+    set -euo pipefail
+
+    mkdir -p {{ results_dir }}
+
+    gatk --java-options "-Xmx16g" GenotypeGVCFs \
+      -R {{ constants.maricopa[source_pipeline].reference_fa }} \
+      -V {{ temp_dir }}/{{ family.name }}.g.vcf.gz \
+      -O {{ output_vcf }}
+
+{% if tasks.joint_variant_calling_somalier | default(true) %}
+  {{- somalier(family, config_type, output_vcf) }}
+{% endif %}
+
+{% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
+  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}_dnm_filtered.bcf{% endset %}
+  {{- dnm_filter(family, output_vcf, filtered_vcf, 'gatk') }}
+{% endif %}
+
+{% endmacro %}

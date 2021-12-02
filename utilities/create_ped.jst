@@ -1,0 +1,21 @@
+{% macro create_ped(family) %}
+
+{% set results_dir %}{{ family.gltype }}/joint_variant_calling{% endset %}
+
+- name: create_ped_{{ family.name }}
+  output: {{ results_dir }}/{{ family.name }}.ped
+  walltime: "1:00:00"
+  cpus: 1
+  mem: 1G
+  cmd: |
+    set -eu
+    set -o pipefail
+
+    mkdir -p {{ results_dir }}
+
+    {# PED file creation #}
+    {% for sample in family.members %}
+    echo -e '{{ family.name }}\t{{ sample.rgsm }}\t{{ sample.paternalID | default(0) }}\t{{ sample.maternalID | default(0) }}\t{{ sample.sex }}\t{{ sample.phenotype }}' >> {{ results_dir }}/{{ family.name }}.ped
+    {% endfor %}
+
+{% endmacro %}

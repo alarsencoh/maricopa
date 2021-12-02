@@ -1,52 +1,53 @@
 {% from 'utilities/rsync_datafiles.jst' import rsync_sample_datafiles with context %}
+{% from 'utilities/create_ped.jst' import create_ped with context %}
 {% from 'modules/joint_variant_calling/glnexus.jst' import glnexus with context %}
+{% from 'modules/joint_variant_calling/gatk.jst' import gatk_joint_genotype with context %}
 {# {% from 'modules/joint_variant_calling/deepvariant.jst' import deepvariant with context %} #}
 
 {% macro joint_variant_calling(samples) %}
 
-{% set trios = [] %}
-{% if joint_variant_calling_trios is defined %}
+{% set families = [] %}
+{% if joint_variant_calling_families is defined %}
   {#
-  # trios can be a predefined list of objects:
-  # [{"individual": <individual name>, "maternal": <maternal name>, "paternal": <paternal name>},...]
+  # families can be a predefined list of objects:
+  # [{"members": [ "<member name>", "<maternal name>", "<paternal name>" ]},...]
   #}
-  {% for trio in joint_variant_calling_trios %}
-    {% set individual = samples[trio.individual] %}
-    {% set maternal = samples[trio.maternal] %}
-    {% set paternal = samples[trio.paternal] %}
-    {% set trio_name = individual.name + '-' + maternal.patientID + '-' + paternal.patientID %}
-
-    {% do trios.append({'name': trio_name, 'gltype': individual.gltype, 'individual': individual, 'maternal': maternal, 'paternal': paternal}) %}
+  {% set members = [] %}
+  {% for family in joint_variant_calling_families %}
+    {% for member in family.members %}
+      {% do members.append(samples[member]) %}
+    {% endfor %}
+    {% do families.append({'name': familyCode, 'gltype': members[0].gltype, 'members': members}) %}
   {% endfor %}
 {% else %}
-  {% for individual in samples.values() if individual.subGroup|lower == 'tumor' and tumor.gltype == 'exome' %}
-    {% for normal in samples.values() if normal.subGroup|lower == 'constitutional' and normal.gltype == 'exome' %}
-      {% set trio_name = individual.name + '-' + maternal.name + '-' + paternal.name %}
-      {% do trios.append({'name': trio_name, 'gltype': individual.gltype, 'individual': individual, 'maternal': maternal, 'paternal': paternal}) %}
-    {% endfor %}
+  {% set members = [] %}
+  {% for individual in samples.values() %}
+    {% if individual not in members %}
+      {% do members.append(individual) %}
+    {% endif %}
   {% endfor %}
-{% endif %}
-
-{% for trio in trios %}
-
-{% if tasks.joint_variant_calling_glnexus_deepvariant | default(true) %}
-  {% if trio.gltype == 'exome' %}
-    {% set input_type = 'DeepVariantWES' %}
-  {% elif trio.gltype == 'genome' %}
-    {% set input_type = 'DeepVariantWGS' %}
+  {% if members | length > 1 %}
+    {% do families.append({'name': familyCode, 'gltype': members[0].gltype, 'members': members}) %}
   {% endif %}
-  {% set location %}temp/joint_variant_calling/{{ input_type }}/{{ trio.name }}{% endset %}
-  {{- rsync_sample_datafiles(samples, 'deepvariant_gvcf', location) }}
-  {{- glnexus(trio, input_type) }}
 {% endif %}
 
-{% if tasks.joint_variant_calling_glnexus_haplotypecaller | default(true) %}
-  {% set input_type = 'gatk' %}
-  {% set location %}temp/joint_variant_calling/{{ input_type }}/{{ trio.name }}{% endset %}
-  {{- rsync_sample_datafiles(samples, 'haplotypecaller_gvcf', location) }}
-  {{- glnexus(trio, input_type) }}
-{% endif %}
-
+{% for family in families %}
+  {{- create_ped(family) }}
+  {% if tasks.joint_variant_calling_glnexus_deepvariant | default(true) %}
+    {% if family.gltype == 'exome' %}
+      {% set config_type = 'DeepVariantWES' %}
+    {% elif family.gltype == 'genome' %}
+      {% set config_type = 'DeepVariantWGS' %}
+    {% endif %}
+    {% set location %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
+    {{- rsync_sample_datafiles(samples, 'glnexus', 'deepvariant_gvcf', location) }}
+    {{- glnexus(family, config_type, 'deepvariant_gvcf') }}
+  {% endif %}
+  {% if tasks.joint_variant_calling_gatk_joint_genotype | default(true) %}
+    {% set location %}temp/{{ family.gltype }}/joint_variant_calling/gatk/{{ family.name }}{% endset %}
+    {{- rsync_sample_datafiles(samples, 'gatk', 'haplotypecaller_gvcf', location) }}
+    {{- gatk_joint_genotype(family, 'haplotypecaller_gvcf') }}
+  {% endif %}
 {% endfor %}
 
 {% endmacro %}

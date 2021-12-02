@@ -7,7 +7,7 @@
 - name: snpsniffer_{{ study }}
   input:
     {% for sample in samples.values() %} 
-    - temp/cohort_analysis/snpsniffer/{{ study }}/{{ sample.name }}.{{ sample.aligner }}.bam.snpSniffer.vcf
+    - {{ temp_dir }}/{{ sample.snpsniffer_vcf | basename }}
     {% endfor %}
   output:
     - {{ results_dir }}/SnpSniffer_AllPairs_Summary.tsv

@@ -1,14 +1,18 @@
-{% macro glnexus(trio, input_type) %}
+{% from 'modules/joint_variant_calling/somalier.jst' import somalier with context %}
+{% from 'modules/joint_variant_calling/bcftools_filter.jst' import dnm_filter with context %}
 
-{% set temp_dir %}temp/joint_variant_calling/{{ input_type }}/{{ trio.name }}{% endset %}
-{% set results_dir %}joint_variant_calling/{{ input_type }}/{{ trio.name }}{% endset %}
+{% macro glnexus(family, config_type, input_type) %}
 
-- name: glnexus_{{ trio.name }}_{{ input_type }}
+{% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
+{% set results_dir %}{{ family.gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
+{% set output_vcf %}{{ results_dir }}/{{ family.name }}.bcf{% endset %}
+
+- name: glnexus_{{ family.name }}_{{ config_type }}
   input:
-    - {{ temp_dir }}/{{ trio.individual.deepvariant_gvcf | basename }}
-    - {{ temp_dir }}/{{ trio.maternal.deepvariant_gvcf | basename }}
-    - {{ temp_dir }}/{{ trio.paternal.deepvariant_gvcf | basename }}
-  output: {{ trio.name }}.bcf
+    {% for member in family.members %}
+    - {{ temp_dir }}/{{ member[input_type] | basename }}
+    {% endfor %}
+  output: {{ output_vcf }}
   tags: [glnexus, joint_variant_calling, ]
   cpus: 8
   mem: 40G
@@ -17,20 +21,34 @@
   cmd: |
     set -euo pipefail
 
-    mkdir -p {{ results_dir }}/{{ trio.name }}_glnexus_db
+    mkdir -p {{ results_dir }}/{{ family.name }}_glnexus_db
 
-    echo {{ temp_dir }}/{{ trio.individual.deepvariant_gvcf | basename }} > {{ temp_dir }}/{{ trio.name }}_gvcf_list.txt
-    echo {{ temp_dir }}/{{ trio.maternal.deepvariant_gvcf | basename }} >> {{ temp_dir }}/{{ trio.name }}_gvcf_list.txt
-    echo {{ temp_dir }}/{{ trio.paternal.deepvariant_gvcf | basename }} >> {{ temp_dir }}/{{ trio.name }}_gvcf_list.txt
+    rm -r {{ temp_dir }}/{{ family.name }}_glnexus_db &>/dev/null || true
+    rm {{ temp_dir }}/{{ family.name }}_gvcf_list.txt || true
 
-    rm -r {{ temp_dir }}/{{ trio.name }}_glnexus_db &>/dev/null || true
+    {% for member in family.members %}
+    echo {{ temp_dir }}/{{ member[input_type] | basename }} >> {{ temp_dir }}/{{ family.name }}_gvcf_list.txt
+    {% endfor %}
+
+    rm -r {{ temp_dir }}/{{ family.name }}_glnexus_db &>/dev/null || true
     
     glnexus_cli \
       --threads 8 \
       --mem-gbytes 40 \
-      --dir {{ temp_dir }}/{{ trio.name }}_glnexus_db \
-      --config {{ input_type }} \
-      --list {{ temp_dir }}/{{ trio.name }}_gvcf_list.txt \
-      > {{ results_dir }}/{{ trio.name }}.bcf
+      --dir {{ temp_dir }}/{{ family.name }}_glnexus_db \
+      --config {{ config_type }} \
+      --list {{ temp_dir }}/{{ family.name }}_gvcf_list.txt \
+      > {{ output_vcf }}
+
+    bcftools index {{ output_vcf }}
+
+{% if tasks.joint_variant_calling_somalier | default(true) %}
+  {{- somalier(family, config_type, output_vcf) }}
+{% endif %}
+
+{% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
+  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}_dnm_filtered.bcf{% endset %}
+  {{- dnm_filter(family, output_vcf, filtered_vcf, 'glnexus') }}
+{% endif %}
 
 {% endmacro %}

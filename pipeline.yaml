@@ -7,21 +7,27 @@ constants:
   tools:
     base:
       docker: /packages/easy-build/containers/Phoenix2.0/baseimage.sif
-      singularity: /packages/easy-build/containers/Phoenix2.0/baseimage.sif
     deepvariant-cpu:
-      docker: docker://google/deepvariant:"1.2.0"
-      singularity: /packages/easy-build/containers/Phoenix2.0/variant_callers-deepvariant-cpu-1.2.0.sif
+      docker: google/deepvariant:"1.2.0"
     deepvariant-gpu:
-      docker: docker://google/deepvariant:"1.2.0-gpu"
-      singularity: /packages/easy-build/containers/Phoenix2.0/variant_callers-deepvariant-gpu-1.2.0.sif
+      docker: google/deepvariant:"1.2.0-gpu"
+    gatk:
+      docker: /packages/easy-build/containers/gatk_4.1.6.0.sif
     glnexus:
       docker: /packages/easy-build/containers/GLnexus-1.4.1.sif
-      singularity: /packages/easy-build/containers/GLnexus-1.4.1.sif
     sigprofiler:
       docker: /packages/easy-build/containers/Phoenix2.0/SigProfiler-1.2.0.sif
-      singularity: /packages/easy-build/containers/Phoenix2.0/SigProfiler-1.2.0.sif
     snpsniffer:
-      docker: /packages/easy-build/containers/Phoenix2.0/qc-bam_qc_snpsniffer.sif
-      singularity: /packages/easy-build/containers/Phoenix2.0/qc-bam_qc_snpsniffer.sif
+      docker: /packages/easy-build/containers/Phoenix2.0/oci2sif/snpSniffer-7.0.0.sif
+    somalier:
+      docker: brentp/somalier:v0.2.13
   maricopa:
-    
+    suncity:
+      somalier_sites: https://github.com/brentp/somalier/files/3412455/sites.GRCh37.vcf.gz
+      reference_fa: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/genome_reference/hs37d5.fa
+      denylist: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/ucsc/Encode_deny_list_with_ucsc_centromere.merged.bed
+    phoenix:
+      reference_fa: /home/tgenref/homo_sapiens/grch38_h38/
+      denylist: /home/tgenref/homo_sapiens/grch38_hg38/public_databases/ncbi/Encode_deny_list_with_ncbi_centromere.merged.bed
+    coyote:
+      reference_fa: /home/tgenref/homo_sapiens/
