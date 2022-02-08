@@ -13,7 +13,7 @@ constants:
       digest: 3d7d55c456546e81eb71a2d44b699c480c55000a969a4bee0c8f1491761b7c63
     gatk:
       container: ghcr.io/tgen/jetstream_containers/gatk:4.1.8.0
-      digest: b7b693e20ed26beb62fe6926a1e89a4e0dd55aa3faf4af5bb38c095a80d759b6
+      digest: babd025607f5cf6995ff9d2d74a66f987da79327288be7bd646fdc0060b4263b
     glnexus:
       container: ghcr.io/tgen/jetstream_containers/glnexus:1.4.1
       digest: 644c598c741bb8edb6ba94667c564bd0107bde93b00ae83c6da0a4ca540c1782
@@ -25,13 +25,13 @@ constants:
       digest: 9f3a1cd900eecb3935d2442e15d9c620dd04afceaf8a5ca7a0b4d086270f6a49
     snpsniffer:
       container: ghcr.io/tgen/jetstream_containers/snpsniffer:7.0.0
-      digest: 24eeec628a7947ebf4e4baf4f53ec2415d12c93a5fe7e4011fe1a5e332a08d90
+      digest: d80b8163f8570809b09c963d0031e59bd69dd0c8ee679e130ad65d9c0dc1136f
     somalier:
       container: brentp/somalier:v0.2.13
       digest: e44f6086013b51861e3c038ad1421fa16fbc952dbbe3a5201350734c91fff4ed
     vep:
       container: ghcr.io/tgen/jetstream_containers/vep:98.3
-      digest: 3f4d9b15dfdcf2ce393061a445f4060a1c8ce6d2796ad234dcc379f3d66fe90d
+      digest: 3ac12ae94e73561b4f24e57d68391a814ac81e7b9ef11966cef66f7fb7c73331
   maricopa:
     suncity:
       somalier_sites: https://github.com/brentp/somalier/files/3412455/sites.GRCh37.vcf.gz
