@@ -16,7 +16,8 @@
   sbatch_args: ['-p', 'overflow,defq']
   cpus: 6
   walltime: "4:00:00"
-  docker_image: {{ constants.tools.base.docker }}
+  container: {{ constants.tools.base.container }}
+  digest: {{ constants.tools.base.digest }}
   cmd: |
     set -euo pipefail
 
@@ -24,7 +25,7 @@
 
     {% for sample in samples.values() %}
       cp {{ isilonPath }}/{{ sample[filetype] }} {{ location }}
-      {% if sample[filetype].endswith('vcf') %}
+      {% if sample[filetype].endswith('vcf.gz') %}
         cp {{ isilonPath }}/{{ sample[filetype] }}.tbi {{ location }}
       {% endif %}
     {% endfor %}

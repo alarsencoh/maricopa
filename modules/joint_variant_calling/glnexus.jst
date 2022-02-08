@@ -1,5 +1,6 @@
-{% from 'modules/joint_variant_calling/somalier.jst' import somalier with context %}
+{% from 'modules/qc/somalier.jst' import somalier with context %}
 {% from 'modules/joint_variant_calling/bcftools_filter.jst' import dnm_filter with context %}
+{% from 'modules/annotation/main.jst' import annotate_vcfs with context %}
 
 {% macro glnexus(family, config_type, input_type) %}
 
@@ -17,11 +18,12 @@
   cpus: 8
   mem: 40G
   walltime: "3-00:00:00"
-  docker_image: {{ constants.tools.glnexus.docker }}
+  container: {{ constants.tools.glnexus.container }}
+  digest: {{ constants.tools.glnexus.digest }}
   cmd: |
     set -euo pipefail
 
-    mkdir -p {{ results_dir }}/{{ family.name }}_glnexus_db
+    mkdir -p {{ results_dir }}
 
     rm -r {{ temp_dir }}/{{ family.name }}_glnexus_db &>/dev/null || true
     rm {{ temp_dir }}/{{ family.name }}_gvcf_list.txt || true
@@ -47,8 +49,10 @@
 {% endif %}
 
 {% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
-  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}_dnm_filtered.bcf{% endset %}
+  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}.glnexus.filtered.bcf{% endset %}
   {{- dnm_filter(family, output_vcf, filtered_vcf, 'glnexus') }}
 {% endif %}
+
+{{- annotate_vcfs(family, temp_dir, results_dir, output_vcf, 'glnexus') }}
 
 {% endmacro %}

@@ -1,11 +1,17 @@
-{% from 'modules/joint_variant_calling/somalier.jst' import somalier with context %}
+{% from 'modules/qc/somalier.jst' import somalier with context %}
 {% from 'modules/joint_variant_calling/bcftools_filter.jst' import dnm_filter with context %}
+{% from 'modules/annotation/main.jst' import annotate_vcfs with context %}
 
 {% macro gatk_joint_genotype(family, input_type) %}
 
 {% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/gatk/{{ family.name }}{% endset %}
 {% set results_dir %}{{ family.gltype }}/joint_variant_calling/gatk/{{ family.name }}{% endset %}
-{% set output_vcf %}{{ results_dir }}/{{ family.name }}.combined.vcf.gz{% endset %}
+{% set combined_vcf %}{{ results_dir }}/{{ family.name }}.hc.vcf.gz{% endset %}
+{% set cnn_vcf %}{{ results_dir }}/{{ family.name }}.hc.cnn.vcf.gz{% endset %}
+{% set vqsr_vcf %}{{ results_dir }}/{{ family.name }}.hc.vqsr.vcf.gz{% endset %}
+{% set vqsr_recal %}{{ results_dir }}/{{ family.name }}.hc.recal{% endset %}
+{% set vqsr_tranches %}{{ results_dir }}/{{ family.name }}.hc.tranches{% endset %}
+{% set vqsr_rscript %}{{ results_dir }}/{{ family.name }}.hc.output.plots.R{% endset %}
 {% set source_pipeline, source_version = pipeline.split('@') %}
 
 - name: gatk_combine_gvcfs_{{ family.name }}
@@ -14,11 +20,11 @@
     - {{ temp_dir }}/{{ member[input_type] | basename }}
     {% endfor %}
   output: {{ temp_dir }}/{{ family.name }}.g.vcf.gz
-  tags: [gatk, joint_variant_calling, ]
   cpus: 4
   mem: 16G
   walltime: "1-00:00:00"
-  docker_image: {{ constants.tools.gatk.docker }}
+  container: {{ constants.tools.gatk.container }}
+  digest: {{ constants.tools.gatk.digest }}
   cmd: |
     set -euo pipefail
 
@@ -33,12 +39,12 @@
 
 - name: gatk_genotype_combined_gvcf_{{ family.name }}
   input: {{ temp_dir }}/{{ family.name }}.g.vcf.gz
-  output: {{ results_dir }}/{{ family.name }}.combined.vcf
-  tags: [gatk, joint_variant_calling, ]
+  output: {{ combined_vcf }}
   cpus: 4
   mem: 16G
   walltime: "1-00:00:00"
-  docker_image: {{ constants.tools.gatk.docker }}
+  container: {{ constants.tools.gatk.container }}
+  digest: {{ constants.tools.gatk.digest }}
   cmd: |
     set -euo pipefail
 
@@ -47,15 +53,80 @@
     gatk --java-options "-Xmx16g" GenotypeGVCFs \
       -R {{ constants.maricopa[source_pipeline].reference_fa }} \
       -V {{ temp_dir }}/{{ family.name }}.g.vcf.gz \
-      -O {{ output_vcf }}
+      -O {{ combined_vcf }}
+
+{% if tasks.gatk_vqsr | default(true) %}
+
+- name: gatk_vqsr_{{ family.name }}
+  input: {{ combined_vcf }}
+  output: 
+    - {{ vqsr_vcf }}
+    - {{ vqsr_recal }}
+    - {{ vqsr_tranches }}
+    - {{ vqsr_rscript }}
+  cpus: 8
+  mem: 32G
+  walltime: "1-00:00:00"
+  container: {{ constants.tools.gatk.container }}
+  digest: {{ constants.tools.gatk.digest }}
+  cmd: |
+    set -euo pipefail
+
+    gatk VariantRecalibrator \
+      -R {{ constants.maricopa[source_pipeline].reference_fa }} \
+      -V {{ combined_vcf }} \
+      {% for resource in constants.maricopa[source_pipeline].vqsr_resources %}
+      --resource:{{ resource.config }} {{ resource.location }} \
+      {% endfor %}
+      -an QD -an MQ -an MQRankSum -an ReadPosRankSum -an FS -an SOR \
+      -mode BOTH \
+      -O {{ vqsr_recal }} \
+      --tranches-file {{ vqsr_tranches }} \
+      --rscript-file {{ vqsr_rscript }}
+
+    gatk ApplyVQSR \
+      -R {{ constants.maricopa[source_pipeline].reference_fa }} \
+      -mode BOTH \
+      -V {{ combined_vcf }} \
+      -O {{ vqsr_vcf }} \
+      --truth-sensitivity-filter-level 99.0 \
+      --tranches-file {{ vqsr_tranches }} \
+      --recal-file {{ vqsr_recal }}
+
+{% endif %}
+
+{% if tasks.gatk_cnnscorevariants | default(true) %}
+
+- name: gatk_cnnscorevariants_{{ family.name }}
+  input: {{ combined_vcf }}
+  output: {{ cnn_vcf }}
+  cpus: 8
+  mem: 32G
+  walltime: "1-00:00:00"
+  container: {{ constants.tools.gatk.container }}
+  digest: {{ constants.tools.gatk.digest }}
+  cmd: |
+
+    . /miniconda3/etc/profile.d/conda.sh
+    source activate gatk
+
+    gatk CNNScoreVariants \
+      --java-options "-Xmx28G" \
+      --reference {{ constants.maricopa[source_pipeline].reference_fa }} \
+      --variant {{ combined_vcf }} \
+      --output {{ cnn_vcf }}
+
+{% endif %}
 
 {% if tasks.joint_variant_calling_somalier | default(true) %}
-  {{- somalier(family, config_type, output_vcf) }}
+  {{- somalier(family, 'gatk', combined_vcf) }}
 {% endif %}
 
 {% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
-  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}_dnm_filtered.bcf{% endset %}
-  {{- dnm_filter(family, output_vcf, filtered_vcf, 'gatk') }}
+  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}.hc.filtered.bcf{% endset %}
+  {{- dnm_filter(family, combined_vcf, filtered_vcf, 'gatk') }}
 {% endif %}
+
+{{- annotate_vcfs(family, temp_dir, results_dir, combined_vcf, 'gatk') }}
 
 {% endmacro %}

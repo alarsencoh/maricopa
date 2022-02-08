@@ -3,8 +3,8 @@
 {% endif %}
 
 {% from 'utilities/rsync_datafiles.jst' import rsync_sample_datafiles with context %}
-{% from 'modules/cohort_analysis/main.jst' import cohort_analysis with context %}
 {% from 'modules/joint_variant_calling/main.jst' import joint_variant_calling with context %}
+{% from 'modules/qc/main.jst' import qc with context %}
 
 {% set samples = {} %}
 
@@ -44,12 +44,16 @@
         {% do file.update({'phenotype': 0}) %}
     {% endif %}
 
+    {% if file.aligner is not defined %}
+        {% do file.update({'aligner': 'bwa'}) %}
+    {% endif %}
+
     {# Setting up expected paths #}
     {% set snpsniffer_vcf %}{{ file.patientID }}/{{ file.gltype }}/alignment/{{ file.aligner }}/{{ file.sampleMergeKey }}/stats/{{ file.sampleMergeKey }}.{{ file.aligner }}.bam.snpSniffer.vcf{% endset %}
-    {% set sigprofiler_vcf %}{{ file.gltype }}/alignment/{{ aligner }}/{{ file.sampleMergeKey }}/stats/{{ file.sampleMergeKey }}.{{ aligner }}.bam.snpSniffer.vcf{% endset %}
+    {% set sigprofiler_vcf %}{{ file.patientID }}/{{ file.gltype }}/alignment/{{ file.aligner }}/stats/{{ file.sampleMergeKey }}.{{ file.aligner }}.bam.snpSniffer.vcf{% endset %}
     {% set deepvariant_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/deepvariant/{{ file.sampleMergeKey }}/{{ file.sampleMergeKey }}.{{ file.aligner }}.deepvariant.all.g.vcf.gz{% endset %}
     {% set haplotypecaller_gvcf %}{{ file.patientID }}/{{ file.gltype }}/constitutional_variant_calls/haplotypecaller/{{ file.sampleMergeKey }}/{{ file.sampleMergeKey }}.{{ file.aligner }}.hc.g.vcf.gz{% endset %}
-    
+
     {% do file.update({'snpsniffer_vcf': snpsniffer_vcf}) %}
     {% do file.update({'sigprofiler_vcf': sigprofiler_vcf}) %}
     {% do file.update({'deepvariant_gvcf': deepvariant_gvcf}) %}
@@ -61,6 +65,6 @@
     {% endif %}
 {% endfor %}
 
-{{- cohort_analysis(samples) }}
-
 {{- joint_variant_calling(samples) }}
+
+{{- qc(samples) }}

@@ -8,27 +8,10 @@
     - {{ vcf }}
     - {{ ped_file }}
   output: {{ filtered_vcf }}
-  docker_image: {{ constants.tools.bcftools.docker }}
+  container: {{ constants.tools.bcftools.container }}
+  digest:  {{ constants.tools.bcftools.digest }}
   cmd: |
     set -euo pipefail
-
-    {# Filters applied 
-    ●  Genotype is heterozygous in child (1/0) and homozygous in both parents (0/0)
-    ●  Child RD >20, Mother RD>20, Father RD>20
-    ●  Remove variants with >1 alternative read in either parent
-    ●  VAF>0.3 and VAF<0.7 for child
-    ●  Remove SNVs within 20 bp of each other. While this is likely removing true MNVs, the error mode was very high for clustered mutations.
-    ●  Removed DNMs if child RD >98
-    ●  Removed DNMs that fell within known segmental duplication regions as defined by
-    ●  UCSC (http://humanparalogy.gs.washington.edu/build37/data/GRCh37GenomicSuperDup.tab)
-    ●  Removed DNMs that fell in highly repetitive regions (http://humanparalogy.gs.washington.edu/build37/data/GRCh37simpleRepeat.txt)
-    ●  For DNM calls that fell on the X chromosome these slightly modified filters were used:
-        ○  For DNMs that fell in PAR regions, the filters were unchanged from the autosomal calls apart from allowing for both heterozygous (1/0) and hemizygous (1) calls in males
-        ○  For DNMs that fell in non-PAR regions the following filters were used:
-            ■  For males: RD>20 in child, RD>20 in mother, no RD filter on father
-            ■  For males: the genotype must be hemizygous (1) in child and homozygous in mother (0/0)
-            ■  For females: RD>20 in child, RD>20 in mother, RD>10 in father 
-    #}
 
     bcftools +trio-dnm -P {{ ped_file }} {{ vcf }} | \
       bcftools view \
@@ -38,5 +21,4 @@
       bcftools view \
         -e 'FMT/DP[2]>98 || FMT/DP<=20 || FMT/AD[0-1:1]>1' -O z -o {{ filtered_vcf }} - 
 
-    {# This is a classical filter from when we had shorter read lengths, not as applicable today #}
-    {# bcftools filter -g 20 -G 20 -O z -o {{ filtered_vcf }} - #}
+{% endmacro %}

@@ -1,0 +1,54 @@
+{%- from 'modules/annotation/snpeff.jst' import snpeff with context %}
+{%- from 'modules/annotation/bcftools_annotate.jst' import bcftools_annotate with context %}
+{%- from 'modules/annotation/vep.jst' import vep with context %}
+
+{%- macro annotate_vcfs(family, temp_dir, results_dir, input_vcf, variant_caller) %}
+
+{%- set output_vcf %}{{ results_dir }}/{{ family.name }}.{{ variant_caller }}.db.vcf.gz{% endset %}
+{%- set temp_vcf %}{{ temp_dir }}/{{ family.name }}.{{ variant_caller }}.db.vcf.gz{% endset %}
+{%- set final_vcf_prefix %}{{ results_dir }}/{{ family.name }}.{{ variant_caller }}{% endset %}
+
+{%- set flags = namespace({ 'bcftools': none, 'snpeff': none, 'vep': none }) %}
+
+{%- if tasks %}
+  {% if tasks.annotate_joint_vcfs_bcftools|default(true) %}
+    {% set flags.bcftools = true %}
+  {% endif %}
+
+  {% if tasks.annotate_joint_vcfs_snpEff_ann|default(true) %}
+    {% set flags.snpeff = true %}
+  {% endif %}
+
+  {% if tasks.annotate_joint_vcfs_vep|default(true) %}
+    {% set flags.vep = true %}
+  {% endif %}
+{% else %}
+  {% set flags.bcftools = true %}
+  {% set flags.snpeff = true %}
+  {% set flags.vep = true %}
+{% endif %}
+
+{%- if flags.bcftools is sameas true %}
+
+    {{- bcftools_annotate(family, temp_dir, input_vcf, variant_caller, output_vcf, temp_vcf, flags.snpeff, flags.vep) }}
+
+    {%- if flags.snpeff %}
+        {{- snpeff(family, results_dir, temp_vcf, variant_caller, final_vcf_prefix+'.db') }}
+    {% endif %}
+
+    {%- if flags.vep %}
+        {{- vep(family, results_dir, temp_vcf, variant_caller, final_vcf_prefix+'.db') }}
+    {% endif %}
+
+{% else %}
+
+  {%- if flags.snpeff %}
+    {{- snpeff(family, results_dir, input_vcf, variant_caller, final_vcf_prefix) }}
+  {% endif %}
+
+  {%- if flags.vep %}
+    {{- vep(family, results_dir, input_vcf, variant_caller, final_vcf_prefix) }}
+  {% endif %}
+
+{% endif %}
+{% endmacro %}

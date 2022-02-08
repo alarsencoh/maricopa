@@ -6,28 +6,95 @@ __pipeline__:
 constants:
   tools:
     base:
-      docker: /packages/easy-build/containers/Phoenix2.0/baseimage.sif
-    deepvariant-cpu:
-      docker: google/deepvariant:"1.2.0"
-    deepvariant-gpu:
-      docker: google/deepvariant:"1.2.0-gpu"
+      container: ghcr.io/tgen/jetstream_containers/debianbase:10
+      digest: 603a1f15690f45a8204997c6c60d69a23e72f6ab943696f1a82a8c1cb948d4c7
+    bcftools:
+      container: ghcr.io/tgen/jetstream_containers/bcftools:1.10.2
+      digest: 3d7d55c456546e81eb71a2d44b699c480c55000a969a4bee0c8f1491761b7c63
     gatk:
-      docker: /packages/easy-build/containers/gatk_4.1.6.0.sif
+      container: ghcr.io/tgen/jetstream_containers/gatk:4.1.8.0
+      digest: b7b693e20ed26beb62fe6926a1e89a4e0dd55aa3faf4af5bb38c095a80d759b6
     glnexus:
-      docker: /packages/easy-build/containers/GLnexus-1.4.1.sif
+      container: ghcr.io/tgen/jetstream_containers/glnexus:1.4.1
+      digest: 644c598c741bb8edb6ba94667c564bd0107bde93b00ae83c6da0a4ca540c1782
     sigprofiler:
-      docker: /packages/easy-build/containers/Phoenix2.0/SigProfiler-1.2.0.sif
+      container: /packages/easy-build/containers/Phoenix2.0/oci2sif/newPipelinetest/SigProfiler-1.2.0.sif
+      digest: notarealdigest
+    snpeff:
+      container: ghcr.io/tgen/jetstream_containers/snpeff:4.3t
+      digest: 9f3a1cd900eecb3935d2442e15d9c620dd04afceaf8a5ca7a0b4d086270f6a49
     snpsniffer:
-      docker: /packages/easy-build/containers/Phoenix2.0/oci2sif/snpSniffer-7.0.0.sif
+      container: ghcr.io/tgen/jetstream_containers/snpsniffer:7.0.0
+      digest: 24eeec628a7947ebf4e4baf4f53ec2415d12c93a5fe7e4011fe1a5e332a08d90
     somalier:
-      docker: brentp/somalier:v0.2.13
+      container: brentp/somalier:v0.2.13
+      digest: e44f6086013b51861e3c038ad1421fa16fbc952dbbe3a5201350734c91fff4ed
+    vep:
+      container: ghcr.io/tgen/jetstream_containers/vep:98.3
+      digest: 3f4d9b15dfdcf2ce393061a445f4060a1c8ce6d2796ad234dcc379f3d66fe90d
   maricopa:
     suncity:
       somalier_sites: https://github.com/brentp/somalier/files/3412455/sites.GRCh37.vcf.gz
       reference_fa: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/genome_reference/hs37d5.fa
       denylist: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/ucsc/Encode_deny_list_with_ucsc_centromere.merged.bed
+      vqsr_resources:
+        - {"config": "hapmap,known=false,training=true,truth=true,prior=15.0", "location": /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/broad_resource_bundle/hapmap_3.3.b37.vcf.gz}
+        - {"config": "1000G,known=false,training=true,truth=false,prior=10.0", "location": /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/broad_resource_bundle/1000G_phase1.indels.b37.vcf.gz}
+        - {"config": "dbsnp,known=true,training=false,truth=false,prior=2.0", "location": /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/dbsnp/b138/dbsnp_138.b37.vcf.gz}
+      annotation_databases:
+        - {"file": "/home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/dbsnp/b138/dbsnp_138.b37.bcf", "mark_sites": "DB", "columns": "ID"}
+        - {"file": "/home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/gnomad/r2.1.1/gnomad.exomes.r2.1.1.sites.bcf", "mark_sites": "GNOMAD_EXOME", "columns": "GNOMAD_EXOME_AC:=AC,GNOMAD_EXOME_AN:=AN,GNOMAD_EXOME_AF:=AF,GNOMAD_EXOME_n_alt_alleles:=n_alt_alleles"}
+        - {"file": "/home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/gnomad/r2.1.1/gnomad.genomes.r2.1.1.sites.bcf", "mark_sites": "GNOMAD_GENOME", "columns": "GNOMAD_GENOME_AC:=AC,GNOMAD_GENOME_AN:=AN,GNOMAD_GENOME_AF:=AF,GNOMAD_GENOME_n_alt_alleles:=n_alt_alleles"}
+      snpeff:
+        snpeff_config: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/gene_model/ensembl_v87/tool_resources/snpEff_v4_3t/snpEff.config
+        snpeff_data: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/gene_model/ensembl_v87/tool_resources/snpEff_v4_3t/data
+        snpeff_db: hs37d5.87
+      vep:
+        vep_data: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/gene_model/ensembl_v87/tool_resources/vep/
+        vep_options: 
+          - "--species homo_sapiens"
+          - "--sift b"
+          - "--polyphen b"
+          - "--humdiv"
     phoenix:
-      reference_fa: /home/tgenref/homo_sapiens/grch38_h38/
+      somalier_sites: https://github.com/brentp/somalier/files/3412456/sites.hg38.vcf.gz
+      reference_fa: /home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/genome_reference/GRCh38tgen_decoy_alts_hla.fa
       denylist: /home/tgenref/homo_sapiens/grch38_hg38/public_databases/ncbi/Encode_deny_list_with_ncbi_centromere.merged.bed
+      vqsr_resources:
+        - {"config": "hapmap,known=false,training=true,truth=true,prior=15.0", "location": /home/tgenref/homo_sapiens/grch38_hg38/public_databases/broad_resource_bundle/hapmap_3.3.hg38.vcf.gz}
+        - {"config": "1000G,known=false,training=true,truth=false,prior=10.0", "location": /home/tgenref/homo_sapiens/grch38_hg38/public_databases/broad_resource_bundle/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz}
+        - {"config": "dbsnp,known=true,training=false,truth=false,prior=2.0", "location": /home/tgenref/homo_sapiens/grch38_hg38/public_databases/broad_resource_bundle/Homo_sapiens_assembly38.dbsnp138.vcf}
+      annotation_databases:
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/dbsnp/b154/dbSNP_b154_hg38tgen.bcf", "mark_sites": "DB", "columns": "ID"}
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/gnomad/r2.1.1/gnomad.exomes.r2.1.1.sites.liftover_grch38_AnnotationReference.bcf", "mark_sites": "GNOMAD_EXOME", "columns": "GNOMAD_EXOME_AC:=AC,GNOMAD_EXOME_AN:=AN,GNOMAD_EXOME_AF:=AF,GNOMAD_EXOME_n_alt_alleles:=n_alt_alleles"}
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/gnomad/r3.0/gnomad.genomes.r3.0.sites.pass.reduced.bcf", "mark_sites": "GNOMAD_GENOME", "columns": "GNOMAD_GENOME_AC:=AC,GNOMAD_GENOME_AN:=AN,GNOMAD_GENOME_AF:=AF,GNOMAD_GENOME_n_alt_alleles:=n_alt_alleles"}
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/cosmic/v92/CosmicCodingMuts_v92_hg38tgen.bcf", "mark_sites": "COSMIC", "columns": "COSMIC_CNT:=CNT,COSMIC_SNP:=SNP"}
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/cosmic/v92/CosmicNonCodingMuts_v92_hg38tgen.bcf", "mark_sites": "COSMIC_NC", "columns": "COSMIC_NC_CNT:=CNT,COSMIC_NC_SNP:=SNP"}
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/clinvar/20201020/clinvar_20201020_hg38tgen.bcf", "mark_sites": "CLINVAR", "columns": ""}
+        - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/topmed/merged.BRAVO_TOPMed_Freeze_8.bcf", "mark_sites": "TOPMED", "columns": "TOPMED_AF:=AF,TOPMED_AN:=AN,TOPMED_AC:=AC,TOPMED_HET:=Het,TOPMED_HOM:=Hom"}
+      snpeff:
+        snpeff_config: /home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/snpEff.config
+        snpeff_data: /home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/data
+        snpeff_db: grch38.98
+      vep:
+        vep_data: /home/tgenref/homo_sapiens/grch38_hg38/tool_specific_resources/vep/v98/
+        vep_options: 
+          - "--species homo_sapiens"
+          - "--sift b"
+          - "--polyphen b"
+          - "--humdiv"
     coyote:
-      reference_fa: /home/tgenref/homo_sapiens/
+      reference_fa: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/genome_reference/Canis_familiaris.CanFam3.1.dna.toplevel.fa
+      denylist: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/mischka_centromere/CanFam3.1.centromere.nochr.bed
+      vqsr_resources:
+        - {"config": "eva,known=true,training=false,truth=false,prior=2.0", "location": /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz}
+      annotation_databases:
+        - {"file": "/home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz", "mark_sites": "GCA_2285.2", "columns": "ID"}
+      snpeff:
+        snpeff_config: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/snpEff.config
+        snpeff_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/data
+        snpeff_db: canfam3.1.98
+      vep:
+        vep_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/vep/
+        vep_options: 
+          - "--species canis_familiaris"

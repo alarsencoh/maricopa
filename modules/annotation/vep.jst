@@ -1,0 +1,113 @@
+{% macro vep(family, results_dir, input_vcf, variant_caller, final_vcf_prefix) %}
+
+{% set source_pipeline, source_version = pipeline.split('@') %}
+
+- name: vep_all_{{ variant_caller }}_{{ family.name }}
+  tags: [{{ family.gltype }}, annotate_vcfs, {{ variant_caller }}, {{ family.name }}]
+  input: {{ input_vcf }}
+  output:
+    - {{ final_vcf_prefix }}.vep.full.vcf.gz
+    - {{ final_vcf_prefix }}.vep.full.vcf.gz.tbi
+  walltime: "8:00:00"
+  cpus: 4
+  mem: 8G
+  container: {{ constants.tools.vep.container }}
+  digest:  {{ constants.tools.vep.digest }}
+  cmd: |
+    set -eu
+    set -o pipefail
+
+    {# Use VEP to create full annotation file with all transcripts #}
+    vep --fork 4 \
+        --input_file {{ input_vcf }} \
+        --format vcf \
+        --output_file {{ final_vcf_prefix }}.vep.full.vcf \
+        --vcf \
+        --vcf_info_field CSQ \
+        --force_overwrite \
+        --no_stats \
+        --cache \
+        --dir_cache {{ constants.maricopa[source_pipeline].vep.vep_data }} \
+        --cache_version 98 \
+        --offline \
+        --fasta {{ constants.maricopa[source_pipeline].reference_fa }} \
+        --buffer_size 10000 \
+        --terms SO \
+        {% for option in constants.maricopa[source_pipeline].vep.vep_options %}
+        {{ option }} \
+        {% endfor %}
+        --hgvs \
+        --hgvsg \
+        --symbol \
+        --uniprot \
+        --domains \
+        --canonical \
+        --flag_pick_allele_gene \
+        --pick_order canonical,appris,tsl,biotype,rank,ccds,length
+
+    {# Convert to compressed VCF #}
+    bcftools view \
+        --threads 4 \
+        --output-type z \
+        --output-file {{ final_vcf_prefix }}.vep.full.vcf.gz \
+        {{ final_vcf_prefix }}.vep.full.vcf
+
+    rm  {{ final_vcf_prefix }}.vep.full.vcf
+
+    bcftools index --threads 4 --force --tbi {{ final_vcf_prefix }}.vep.full.vcf.gz
+
+- name: vep_con_{{ variant_caller }}_{{ family.name }}
+  tags: [{{ family.gltype }}, annotate_vcfs, {{ variant_caller }}, {{ family.name }}]
+  input: {{ input_vcf }}
+  output:
+    - {{ final_vcf_prefix }}.vep.pick.vcf.gz
+    - {{ final_vcf_prefix }}.vep.pick.vcf.gz.tbi
+  walltime: "8:00:00"
+  cpus: 4
+  mem: 8G
+  container: {{ constants.tools.vep.container }}
+  digest: {{ constants.tools.vep.digest }}
+  cmd: |
+    set -euv
+    set -o pipefail
+
+    {# Use VEP to create full annotation file with all transcripts #}
+    vep --fork 4 \
+        --input_file {{ input_vcf }} \
+        --format vcf \
+        --output_file {{ final_vcf_prefix }}.vep.pick.vcf \
+        --vcf \
+        --vcf_info_field CSQ \
+        --force_overwrite \
+        --no_stats \
+        --cache \
+        --dir_cache {{ constants.maricopa[source_pipeline].vep.vep_data }} \
+        --cache_version 98 \
+        --offline \
+        --fasta {{ constants.maricopa[source_pipeline].reference_fa }} \
+        --buffer_size 10000 \
+        --terms SO \
+        {% for option in constants.maricopa[source_pipeline].vep.vep_options %}
+        {{ option }} \
+        {% endfor %}
+        --hgvs \
+        --hgvsg \
+        --symbol \
+        --uniprot \
+        --domains \
+        --canonical \
+        --pick_allele_gene \
+        --pick_order canonical,appris,tsl,biotype,rank,ccds,length
+
+    {# Convert to compressed VCF #}
+    bcftools view \
+        --threads 4 \
+        --output-type z \
+        --output-file {{ final_vcf_prefix }}.vep.pick.vcf.gz \
+        {{ final_vcf_prefix }}.vep.pick.vcf
+
+    rm {{ final_vcf_prefix }}.vep.pick.vcf
+
+    bcftools index --threads 4 --force --tbi {{ final_vcf_prefix }}.vep.pick.vcf.gz
+
+{% endmacro %}

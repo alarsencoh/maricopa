@@ -18,7 +18,8 @@
   cpus: 4
   mem: 8G
   walltime: "1-00:00:00"
-  docker_image: {{ constants.tools.somalier.docker }}
+  container: {{ constants.tools.somalier.container }}
+  digest: {{ constants.tools.somalier.digest }}
   cmd: |
     set -euo pipefail
 

@@ -1,0 +1,81 @@
+{%- macro bcftools_annotate(family, temp_dir, input_vcf, variant_caller, output_vcf, temp_vcf, snpeff_flag, vep_flag) %}
+
+{%- set output_bcf %}{{ temp_dir }}/{{ family.name }}.{{ variant_caller }}.db.bcf{% endset %}
+{% set source_pipeline, source_version = pipeline.split('@') %}
+
+- name: bcftools_annotate_{{ variant_caller }}_{{ family.name }}
+  tags: [{{ family.gltype }}, annotate_vcfs, {{ variant_caller }}, {{ family.name }}]
+  input: {{ input_vcf }}
+  output:
+    {% if snpeff_flag or vep_flag %}
+    - {{ temp_vcf }}
+    - {{ temp_vcf }}.tbi
+    {% else %}
+    - {{ output_vcf }}
+    - {{ output_vcf }}.tbi
+    {% endif %}
+  walltime: "8:00:00"
+  cpus: 4
+  mem: 4G
+  container: {{ constants.tools.bcftools.container }}
+  digest: {{ constants.tools.bcftools.digest }}
+  cmd: |
+    set -eu
+    set -o pipefail
+
+    mkdir -p "{{ temp_dir }}"
+
+    {#
+    # we need to convert whatever vcf type we are given into a bcf (bcftools loves bcfs)
+    # also create a temp bcf that we will use for all annotation runs
+    #}
+    bcftools view \
+      --threads 4 \
+      --output-type b \
+      --output-file "{{ output_bcf }}" \
+      "{{ input_vcf }}"
+
+    bcftools index --threads 4 --force "{{ output_bcf }}"
+
+    {% for db in constants.maricopa[source_pipeline].annotation_databases %}
+    bcftools annotate \
+      --threads 4 \
+      --annotations {{ db.file }} \
+      --mark-sites {{ db.mark_sites }} \
+      {% if db.columns != "" %}
+      --columns {{ db.columns }} \
+      {% endif %}
+      --output-type b \
+      --output "{{ temp_dir }}/tempout.bcf" \
+      "{{ output_bcf }}"
+
+    {# move tempout to tempin for next step #}
+    mv "{{ temp_dir }}/tempout.bcf" "{{ output_bcf }}"
+
+    bcftools index --threads 4 --force "{{ output_bcf }}"
+    {% endfor %}
+
+    {# convert back to vcf.gz for the average users #}
+    {% if snpeff_flag or vep_flag %}
+
+    bcftools view \
+    --threads 4 \
+    --output-type z \
+    --output-file "{{ temp_vcf }}" \
+    "{{ output_bcf }}"
+
+    bcftools index --threads 4 --tbi --force "{{ temp_vcf }}"
+    bcftools index --threads 4 --force "{{ temp_vcf }}"
+
+    {% else %}
+
+    bcftools view \
+    --threads 4 \
+    --output-type z \
+    --output-file "{{ output_vcf }}" \
+    "{{ output_bcf }}"
+
+    bcftools index --threads 4 --tbi --force "{{ output_vcf }}"
+
+    {% endif -%}
+{% endmacro -%}

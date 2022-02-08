@@ -5,6 +5,7 @@
 {% set results_dir %}cohort_analysis/snpsniffer/{{ study }}{% endset %}
 
 - name: snpsniffer_{{ study }}
+  reset: predecessors
   input:
     {% for sample in samples.values() %} 
     - {{ temp_dir }}/{{ sample.snpsniffer_vcf | basename }}
@@ -26,7 +27,8 @@
     - {{ results_dir }}/SnpSniffer_Genotypes_ByAssayType_All.png
   cpus: 6
   walltime: "4:00:00"
-  docker_image: {{ constants.tools.snpsniffer.docker }}
+  container: {{ constants.tools.snpsniffer.container }}
+  digest: {{ constants.tools.snpsniffer.digest }}
   cmd: |
     set -eu
 
@@ -36,6 +38,8 @@
     mkdir -p {{ results_dir}}
 
     cp {{ snpsniffer_db }} {{ temp_dir }}/SnpSniffer_DB.ini
+
+    PROJECT_ROOT=$PWD
 
     cd {{ temp_dir }}
 
@@ -132,7 +136,7 @@
     }
     }' SnpSniffer_AllPairs_Summary.tsv > SnpSniffer_Mismatch_Summary.tsv
 
-    cd ..
+    cd $PROJECT_ROOT
 
     mv {{ temp_dir }}/SnpSniffer_AllPairs_Summary.tsv {{ results_dir }}
     mv {{ temp_dir }}/SnpSniffer_PossibleMatchErrors_Summary.tsv {{ results_dir }}
