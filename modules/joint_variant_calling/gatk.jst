@@ -12,7 +12,7 @@
 {% set vqsr_recal %}{{ results_dir }}/{{ family.name }}.hc.recal{% endset %}
 {% set vqsr_tranches %}{{ results_dir }}/{{ family.name }}.hc.tranches{% endset %}
 {% set vqsr_rscript %}{{ results_dir }}/{{ family.name }}.hc.output.plots.R{% endset %}
-{% set source_pipeline, source_version = pipeline.split('@') %}
+{% set source_pipeline, source_version = primaryPipeline.split('@') %}
 
 - name: gatk_combine_gvcfs_{{ family.name }}
   input:

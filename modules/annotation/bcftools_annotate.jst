@@ -1,7 +1,7 @@
 {%- macro bcftools_annotate(family, temp_dir, input_vcf, variant_caller, output_vcf, temp_vcf, snpeff_flag, vep_flag) %}
 
 {%- set output_bcf %}{{ temp_dir }}/{{ family.name }}.{{ variant_caller }}.db.bcf{% endset %}
-{% set source_pipeline, source_version = pipeline.split('@') %}
+{% set source_pipeline, source_version = primaryPipeline.split('@') %}
 
 - name: bcftools_annotate_{{ variant_caller }}_{{ family.name }}
   tags: [{{ family.gltype }}, annotate_vcfs, {{ variant_caller }}, {{ family.name }}]

@@ -3,7 +3,7 @@
 {% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/qc/{{ tool }}/{{ family.name }}{% endset %}
 {% set results_dir %}{{ family.gltype }}/joint_variant_calling/qc/{{ tool }}/{{ family.name }}{% endset %}
 {% set ped_file %}{{ family.gltype }}/joint_variant_calling/{{ family.name }}.ped{% endset %}
-{% set source_pipeline, source_version = pipeline.split('@') %}
+{% set source_pipeline, source_version = primaryPipeline.split('@') %}
 
 - name: somalier_{{ family.name }}_{{ tool }}
   input: 

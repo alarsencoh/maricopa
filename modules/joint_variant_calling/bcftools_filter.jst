@@ -1,7 +1,7 @@
 {% macro dnm_filter(family, vcf, filtered_vcf, tool) %}
 
 {% set ped_file %}{{ family.gltype }}/joint_variant_calling/{{ family.name }}.ped{% endset %}
-{% set source_pipeline, source_version = pipeline.split('@') %}
+{% set source_pipeline, source_version = primaryPipeline.split('@') %}
 
 - name: bcftools_filter_{{ tool }}
   input: 
