@@ -17,15 +17,31 @@
 
     {# PED file creation #}
     {% for sample in family.members %}
-    {% set paternal = {} %}
-    {% set maternal = {} %}
-    {% if dataFiles|selectattr('patientID', 'eq', sample.paternalID)|first is defined %}
-      {% do paternal.update(dataFiles|selectattr('assayCode', 'eq', sample.assayCode)|first) %}
+    {% set paternals = [] %}
+    {% set maternals = [] %}
+    {% if dataFiles|selectattr('patientID', 'eq', sample.paternalID) is defined %}
+      {% for paternal in dataFiles|selectattr('patientID', 'eq', sample.paternalID) %}
+        {% do paternals.append(paternal) %}
+      {% endfor	%}
     {% endif %}
-    {% if dataFiles|selectattr('patientID', 'eq', sample.maternalID)|first is defined %}
-      {% do maternal.update(dataFiles|selectattr('assayCode', 'eq', sample.assayCode)|first) %}
+    {% if dataFiles|selectattr('patientID', 'eq', sample.maternalID) is defined %}
+      {% for maternal in dataFiles|selectattr('patientID', 'eq', sample.maternalID) %}
+        {% do maternals.append(maternal) %}
+      {% endfor	%}
     {% endif %}
-    echo -e '{{ family.name }}\t{{ sample.rgsm }}\t{{ paternal.rgsm | default(0) }}\t{{ maternal.rgsm | default(0) }}\t{{ sample.sex }}\t{{ sample.phenotype }}' >> {{ results_dir }}/{{ family.name }}.ped
+    {% set sample_matches = [] %}
+    {% if paternals | length >= 1 or maternals | length >= 1 %} 
+    {% for paternal in paternals %}
+      {% for maternal in maternals %}
+        {% do sample_matches.append({'sample': sample, 'paternal': paternal, 'maternal': maternal}) %}
+      {% endfor %}
+    {% endfor %}
+    {% for pair in sample_matches %}
+    echo -e '{{ family.name }}\t{{ pair.sample.rgsm }}\t{{ pair.paternal.rgsm | default(0) }}\t{{ pair.maternal.rgsm | default(0) }}\t{{ sample.sex }}\t{{ sample.phenotype }}' >> {{ results_dir }}/{{ family.name }}.ped
+    {% endfor %}
+    {% else %}
+    echo -e '{{	family.name }}\t{{ sample.rgsm }}\t{{ paternals.rgsm	| default(0) }}\t{{ maternals.rgsm | default(0) }}\t{{ sample.sex }}\t{{ sample.phenotype }}' >> {{ results_dir }}/{{ family.name }}.ped
+    {% endif %}
     {% endfor %}
 
 {% endmacro %}
