@@ -17,7 +17,15 @@
 
     {# PED file creation #}
     {% for sample in family.members %}
-    echo -e '{{ family.name }}\t{{ sample.rgsm }}\t{{ sample.paternalID | default(0) }}\t{{ sample.maternalID | default(0) }}\t{{ sample.sex }}\t{{ sample.phenotype }}' >> {{ results_dir }}/{{ family.name }}.ped
+    {% set paternal = {} %}
+    {% set maternal = {} %}
+    {% if dataFiles|selectattr('patientID', 'eq', sample.paternalID)|first is defined %}
+      {% do paternal.update(dataFiles|selectattr('assayCode', 'eq', sample.assayCode)|first) %}
+    {% endif %}
+    {% if dataFiles|selectattr('patientID', 'eq', sample.maternalID)|first is defined %}
+      {% do maternal.update(dataFiles|selectattr('assayCode', 'eq', sample.assayCode)|first) %}
+    {% endif %}
+    echo -e '{{ family.name }}\t{{ sample.rgsm }}\t{{ paternal.rgsm | default(0) }}\t{{ maternal.rgsm | default(0) }}\t{{ sample.sex }}\t{{ sample.phenotype }}' >> {{ results_dir }}/{{ family.name }}.ped
     {% endfor %}
 
 {% endmacro %}
