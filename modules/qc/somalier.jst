@@ -1,7 +1,7 @@
 {% macro somalier(family, tool, input_vcf) %}
 
-{% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/qc/{{ tool }}/{{ family.name }}{% endset %}
-{% set results_dir %}{{ family.gltype }}/joint_variant_calling/qc/{{ tool }}/{{ family.name }}{% endset %}
+{% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/qc/somalier/{{ tool }}/{{ family.name }}{% endset %}
+{% set results_dir %}{{ family.gltype }}/joint_variant_calling/qc/somalier/{{ tool }}/{{ family.name }}{% endset %}
 {% set ped_file %}{{ family.gltype }}/joint_variant_calling/{{ family.name }}.ped{% endset %}
 {% set source_pipeline, source_version = primaryPipeline.split('@') %}
 
