@@ -31,7 +31,7 @@ constants:
       digest: e44f6086013b51861e3c038ad1421fa16fbc952dbbe3a5201350734c91fff4ed
     vep:
       container: ghcr.io/tgen/jetstream_containers/vep:98.3
-      digest: f02c0bda857c6cfc97dc2c231307b87e86bb83fc375553ee4bd2141bf51bdea0
+      digest: 9c85500915b8b90af50169c79611e80761bc2c5a739834b9e4df6e7d3e2e5dce
   maricopa:
     suncity:
       somalier_sites: https://github.com/brentp/somalier/files/3412455/sites.GRCh37.vcf.gz
