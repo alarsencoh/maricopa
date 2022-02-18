@@ -45,6 +45,7 @@ constants:
         - {"file": "/home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/dbsnp/b138/dbsnp_138.b37.bcf", "mark_sites": "DB", "columns": "ID"}
         - {"file": "/home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/gnomad/r2.1.1/gnomad.exomes.r2.1.1.sites.bcf", "mark_sites": "GNOMAD_EXOME", "columns": "GNOMAD_EXOME_AC:=AC,GNOMAD_EXOME_AN:=AN,GNOMAD_EXOME_AF:=AF,GNOMAD_EXOME_n_alt_alleles:=n_alt_alleles"}
         - {"file": "/home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/public_databases/gnomad/r2.1.1/gnomad.genomes.r2.1.1.sites.bcf", "mark_sites": "GNOMAD_GENOME", "columns": "GNOMAD_GENOME_AC:=AC,GNOMAD_GENOME_AN:=AN,GNOMAD_GENOME_AF:=AF,GNOMAD_GENOME_n_alt_alleles:=n_alt_alleles"}
+      snpsniffer_db: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/tool_resources/snpSniffer/databaseV5.ini
       snpeff:
         snpeff_config: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/gene_model/ensembl_v87/tool_resources/snpEff_v4_3t/snpEff.config
         snpeff_data: /home/tgenref/homo_sapiens/grch37_hg19/hs37d5_suncity/gene_model/ensembl_v87/tool_resources/snpEff_v4_3t/data
@@ -72,6 +73,7 @@ constants:
         - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/cosmic/v92/CosmicNonCodingMuts_v92_hg38tgen.bcf", "mark_sites": "COSMIC_NC", "columns": "COSMIC_NC_CNT:=CNT,COSMIC_NC_SNP:=SNP"}
         - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/clinvar/20201020/clinvar_20201020_hg38tgen.bcf", "mark_sites": "CLINVAR", "columns": ""}
         - {"file": "/home/tgenref/homo_sapiens/grch38_hg38/public_databases/topmed/merged.BRAVO_TOPMed_Freeze_8.bcf", "mark_sites": "TOPMED", "columns": "TOPMED_AF:=AF,TOPMED_AN:=AN,TOPMED_AC:=AC,TOPMED_HET:=Het,TOPMED_HOM:=Hom"}
+      snpsniffer_db: /home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/tool_resources/snpSniffer/databaseV5_hg38_ucsc.ini
       snpeff:
         snpeff_config: /home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/snpEff.config
         snpeff_data: /home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/data
@@ -90,6 +92,39 @@ constants:
         - {"config": "eva,known=true,training=false,truth=false,prior=2.0", "location": /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz}
       annotation_databases:
         - {"file": "/home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz", "mark_sites": "GCA_2285.2", "columns": "ID"}
+      snpsniffer_db: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/tool_resources/snpSniffer/databaseV5_canfam3.1.ini
+      snpeff:
+        snpeff_config: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/snpEff.config
+        snpeff_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/data
+        snpeff_db: canfam3.1.98
+      vep:
+        vep_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/vep/
+        vep_options: 
+          - "--species canis_familiaris"
+    bastien:
+      reference_fa: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/genome_reference/Canis_familiaris.CanFam3.1.dna.toplevel.fa
+      denylist: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/mischka_centromere/CanFam3.1.centromere.nochr.bed
+      vqsr_resources:
+        - {"config": "eva,known=true,training=false,truth=false,prior=2.0", "location": /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz}
+      annotation_databases:
+        - {"file": "/home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz", "mark_sites": "GCA_2285.2", "columns": "ID"}
+      snpsniffer_db: /home/tgenref/canis_familiaris/ros_cfam1.0/ros_cfam1.0_tgen/tool_resources/snpSniffer/databaseV5_ros_cfam1.0.ini
+      snpeff:
+        snpeff_config: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/snpEff.config
+        snpeff_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/data
+        snpeff_db: canfam3.1.98
+      vep:
+        vep_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/vep/
+        vep_options: 
+          - "--species canis_familiaris"
+    monte:
+      reference_fa: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/genome_reference/Canis_familiaris.CanFam3.1.dna.toplevel.fa
+      denylist: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/mischka_centromere/CanFam3.1.centromere.nochr.bed
+      vqsr_resources:
+        - {"config": "eva,known=true,training=false,truth=false,prior=2.0", "location": /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz}
+      annotation_databases:
+        - {"file": "/home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/public_databases/eva/GCA_000002285.2_current_ids_renamed.vcf.gz", "mark_sites": "GCA_2285.2", "columns": "ID"}
+      snpsniffer_db: /home/tgenref/canis_familiaris/dog10k_boxer_tasha/dog10k_boxer_tasha_tgen/tool_resources/snpSniffer/databaseV5_dog10k_boxer_tasha.ini
       snpeff:
         snpeff_config: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/snpEff.config
         snpeff_data: /home/tgenref/canis_familiaris/canfam3.1/canfam3.1_tgen/gene_model/ensembl_v98/tool_resources/snpEff_v4_3t/data

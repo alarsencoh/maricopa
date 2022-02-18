@@ -1,6 +1,6 @@
 {% macro snpsniffer(samples) %}
 
-{% set snpsniffer_db %}/home/tgenref/homo_sapiens/grch38_hg38/hg38tgen/tool_resources/snpSniffer/databaseV5_hg38_ucsc.ini{% endset %}
+{% set source_pipeline, source_version = primaryPipeline.split('@') %}
 {% set temp_dir %}temp/cohort_analysis/snpsniffer/{{ study }}{% endset %}
 {% set results_dir %}cohort_analysis/snpsniffer/{{ study }}{% endset %}
 
@@ -37,7 +37,7 @@
 
     mkdir -p {{ results_dir}}
 
-    cp {{ snpsniffer_db }} {{ temp_dir }}/SnpSniffer_DB.ini
+    cp {{ constants.maricopa[source_pipeline].snpsniffer_db }} {{ temp_dir }}/SnpSniffer_DB.ini
 
     PROJECT_ROOT=$PWD
 
