@@ -20,15 +20,15 @@
     {% for sample in family.members %}
     {% set paternals = [] %}
     {% set maternals = [] %}
-    {% if dataFiles|selectattr('patientID', 'eq', sample.paternalID) is defined %}
+    {% if sample.paternalID is defined %}
       {% for paternal in dataFiles|selectattr('patientID', 'eq', sample.paternalID) %}
         {% do paternals.append(paternal) %}
-      {% endfor	%}
+      {% endfor %}
     {% endif %}
-    {% if dataFiles|selectattr('patientID', 'eq', sample.maternalID) is defined %}
+    {% if sample.maternalID is defined %}
       {% for maternal in dataFiles|selectattr('patientID', 'eq', sample.maternalID) %}
         {% do maternals.append(maternal) %}
-      {% endfor	%}
+      {% endfor %}
     {% endif %}
     {% set sample_matches = [] %}
     {% if paternals | length >= 1 or maternals | length >= 1 %} 
