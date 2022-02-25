@@ -6,7 +6,7 @@
 
 {% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
 {% set results_dir %}{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
-{% set output_vcf %}{{ results_dir }}/{{ family.name }}.vcf.gz {% endset %}
+{% set output_vcf %}{{ results_dir }}/{{ family.name }}.vcf.gz{% endset %}
 
 - name: glnexus_{{ family.name }}_deepvariant_{{ family.gltype }}
   input:
