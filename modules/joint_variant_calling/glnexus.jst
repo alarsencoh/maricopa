@@ -4,11 +4,11 @@
 
 {% macro glnexus(family, config_type, input_type) %}
 
-{% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
-{% set results_dir %}{{ family.gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
-{% set output_vcf %}{{ results_dir }}/{{ family.name }}.bcf{% endset %}
+{% set temp_dir %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
+{% set results_dir %}{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
+{% set output_vcf %}{{ results_dir }}/{{ family.name }}.vcf.gz {% endset %}
 
-- name: glnexus_{{ family.name }}_{{ config_type }}
+- name: glnexus_{{ family.name }}_deepvariant_{{ family.gltype }}
   input:
     {% for member in family.members %}
     - {{ temp_dir }}/{{ member[input_type] | basename }}
@@ -39,17 +39,20 @@
       --mem-gbytes 40 \
       --dir {{ temp_dir }}/{{ family.name }}_glnexus_db \
       --config {{ config_type }} \
-      --list {{ temp_dir }}/{{ family.name }}_gvcf_list.txt \
-      > {{ output_vcf }}
+      --list {{ temp_dir }}/{{ family.name }}_gvcf_list.txt |\
+    bcftools view \
+      --output-type z \
+      --output-file {{ output_vcf }} \
+      -
 
     bcftools index {{ output_vcf }}
 
 {% if tasks.joint_variant_calling_somalier | default(true) %}
-  {{- somalier(family, config_type, output_vcf) }}
+  {{- somalier(family, 'glnexus', output_vcf) }}
 {% endif %}
 
 {% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
-  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}.glnexus.filtered.bcf{% endset %}
+  {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}.glnexus.filtered.vcf.gz{% endset %}
   {{- dnm_filter(family, output_vcf, filtered_vcf, 'glnexus') }}
 {% endif %}
 
