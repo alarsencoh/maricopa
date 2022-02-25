@@ -1,8 +1,8 @@
 {% macro snpsniffer(samples) %}
 
 {% set source_pipeline, source_version = primaryPipeline.split('@') %}
-{% set temp_dir %}temp/cohort_analysis/snpsniffer/{{ study }}{% endset %}
-{% set results_dir %}cohort_analysis/snpsniffer/{{ study }}{% endset %}
+{% set temp_dir %}temp/qc/snpsniffer/{{ study }}{% endset %}
+{% set results_dir %}qc/snpsniffer/{{ study }}{% endset %}
 
 - name: snpsniffer_{{ study }}
   reset: predecessors

@@ -55,7 +55,7 @@
       -V {{ temp_dir }}/{{ family.name }}.g.vcf.gz \
       -O {{ combined_vcf }}
 
-{% if tasks.gatk_vqsr | default(true) %}
+{% if tasks.joint_variant_calling_gatk_vqsr | default(true) %}
 
 - name: gatk_vqsr_{{ family.name }}
   input: {{ combined_vcf }}
@@ -95,7 +95,7 @@
 
 {% endif %}
 
-{% if tasks.gatk_cnnscorevariants | default(true) %}
+{% if tasks.joint_variant_calling_gatk_cnnscorevariants | default(true) %}
 
 - name: gatk_cnnscorevariants_{{ family.name }}
   input: {{ combined_vcf }}
