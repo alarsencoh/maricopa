@@ -38,7 +38,7 @@
     {% elif family.gltype == 'genome' %}
       {% set config_type = 'DeepVariantWGS' %}
     {% endif %}
-    {% set location %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/{{ config_type }}/{{ family.name }}{% endset %}
+    {% set location %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
     {{- rsync_sample_datafiles(samples, 'glnexus', 'deepvariant_gvcf', location) }}
     {{- glnexus(family, config_type, 'deepvariant_gvcf') }}
   {% endif %}

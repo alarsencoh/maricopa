@@ -11,6 +11,9 @@
   output:
     {% for sample in samples.values() %}
     - {{ location }}/{{ sample[filetype] | basename }}
+    {% if sample[filetype].endswith('vcf.gz') %}
+    - {{ location }}/{{ sample[filetype] | basename }}.tbi
+    {% endif %}
     {% endfor %}
   tags: [rsync,]
   sbatch_args: ['-p', 'overflow,defq']
