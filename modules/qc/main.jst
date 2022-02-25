@@ -4,7 +4,7 @@
 {% macro qc(samples) %}
 
 {% if tasks.cohort_analysis_snpsniffer | default(true) %}
-    {% set location %}temp/cohort_analysis/snpsniffer/{{ study }}{% endset %}
+    {% set location %}temp/qc/snpsniffer/{{ study }}{% endset %}
     {{- rsync_sample_datafiles(samples, 'snpsniffer', 'snpsniffer_vcf', location) }}
     {{- snpsniffer(samples) }}
 {% endif %}
