@@ -32,17 +32,20 @@
 
 {% for family in families %}
   {{- create_ped(family) }}
-  {% if tasks.joint_variant_calling_glnexus_deepvariant | default(true) %}
-    {% if family.gltype == 'exome' %}
-      {% set config_type = 'DeepVariantWES' %}
-    {% elif family.gltype == 'genome' %}
-      {% set config_type = 'DeepVariantWGS' %}
-    {% endif %}
+  {% if family.gltype in 'exome' %}
+    {% set taskPrefix = 'Exome' %}
+    {% set config_type = 'DeepVariantWES' %}
+  {% elif family.gltype in 'genome' %}
+    {% set taskPrefix = 'Genome' %}
+    {% set config_type = 'DeepVariantWGS' %}
+  {% endif %}
+
+  {% if tasks[taskPrefix+"_joint_variant_calling_glnexus_deepvariant"] | default(true) %}
     {% set location %}temp/{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
     {{- rsync_sample_datafiles(samples, 'glnexus', 'deepvariant_gvcf', location) }}
     {{- glnexus(family, config_type, 'deepvariant_gvcf') }}
   {% endif %}
-  {% if tasks.joint_variant_calling_gatk_joint_genotype | default(true) %}
+  {% if tasks[taskPrefix+"_joint_variant_calling_gatk_joint_genotype"] | default(true) %}
     {% set location %}temp/{{ family.gltype }}/joint_variant_calling/gatk/{{ family.name }}{% endset %}
     {{- rsync_sample_datafiles(samples, 'gatk', 'haplotypecaller_gvcf', location) }}
     {{- gatk_joint_genotype(family, 'haplotypecaller_gvcf') }}

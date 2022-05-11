@@ -8,6 +8,12 @@
 {% set results_dir %}{{ family.gltype }}/joint_variant_calling/glnexus/deepvariant/{{ family.name }}{% endset %}
 {% set output_vcf %}{{ results_dir }}/{{ family.name }}.vcf.gz{% endset %}
 
+{% if family.gltype in 'exome' %}
+  {% set taskPrefix = 'Exome' %}
+{% elif family.gltype in 'genome' %}
+  {% set taskPrefix = 'Genome' %}
+{% endif %}
+
 - name: glnexus_{{ family.name }}_deepvariant_{{ family.gltype }}
   input:
     {% for member in family.members %}
@@ -47,11 +53,11 @@
 
     bcftools index {{ output_vcf }}
 
-{% if tasks.joint_variant_calling_somalier | default(true) %}
+{% if tasks[taskPrefix+"_joint_variant_calling_glnexus_somalier"] | default(true) %}
   {{- somalier(family, 'glnexus', output_vcf) }}
 {% endif %}
 
-{% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
+{% if tasks[taskPrefix+"_joint_variant_calling_glnexus_bcftools_filter"] | default(true) %}
   {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}.glnexus.filtered.vcf.gz{% endset %}
   {{- dnm_filter(family, output_vcf, filtered_vcf, 'glnexus') }}
 {% endif %}

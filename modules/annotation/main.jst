@@ -10,16 +10,22 @@
 
 {%- set flags = namespace({ 'bcftools': none, 'snpeff': none, 'vep': none }) %}
 
+{% if family.gltype in 'exome' %}
+  {% set taskPrefix = 'Exome' %}
+{% elif family.gltype in 'genome' %}
+  {% set taskPrefix = 'Genome' %}
+{% endif %}
+
 {%- if tasks %}
-  {% if tasks.annotate_joint_vcfs_bcftools|default(true) %}
+  {% if tasks[taskPrefix+"_annotate_joint_vcfs_bcftools"] | default(true) %}
     {% set flags.bcftools = true %}
   {% endif %}
 
-  {% if tasks.annotate_joint_vcfs_snpEff_ann|default(true) %}
+  {% if tasks[taskPrefix+"_annotate_joint_vcfs_snpEff_ann"] | default(true) %}
     {% set flags.snpeff = true %}
   {% endif %}
 
-  {% if tasks.annotate_joint_vcfs_vep|default(true) %}
+  {% if tasks[taskPrefix+"_annotate_joint_vcfs_vep"] | default(true) %}
     {% set flags.vep = true %}
   {% endif %}
 {% else %}

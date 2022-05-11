@@ -3,9 +3,9 @@
 - name: rsync_{{ tool }}_{{ filetype }}_{{ study }}
   input:
     {% for sample in samples.values() %}
-    - {{ isilonPath }}/{{ sample[filetype] }}
+    - {{ primaryArchivePath }}/{{ sample[filetype] }}
     {% if sample[filetype].endswith('vcf.gz') %}
-    - {{ isilonPath }}/{{ sample[filetype] }}.tbi
+    - {{ primaryArchivePath }}/{{ sample[filetype] }}.tbi
     {% endif %}
     {% endfor %}
   output:
@@ -27,9 +27,9 @@
     mkdir -p {{ location }}
 
     {% for sample in samples.values() %}
-      cp {{ isilonPath }}/{{ sample[filetype] }} {{ location }}
+      cp {{ primaryArchivePath }}/{{ sample[filetype] }} {{ location }}
       {% if sample[filetype].endswith('vcf.gz') %}
-      cp {{ isilonPath }}/{{ sample[filetype] }}.tbi {{ location }}
+      cp {{ primaryArchivePath }}/{{ sample[filetype] }}.tbi {{ location }}
       {% endif %}
     {% endfor %}
 

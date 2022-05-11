@@ -14,7 +14,13 @@
 {% set vqsr_rscript %}{{ results_dir }}/{{ family.name }}.hc.output.plots.R{% endset %}
 {% set source_pipeline, source_version = primaryPipeline.split('@') %}
 
-- name: gatk_combine_gvcfs_{{ family.name }}
+{% if family.gltype in 'exome' %}
+  {% set taskPrefix = 'Exome' %}
+{% elif family.gltype in 'genome' %}
+  {% set taskPrefix = 'Genome' %}
+{% endif %}
+
+- name: gatk_combine_gvcfs_{{ family.name }}_{{ family.gltype }}
   input:
     {% for member in family.members %}
     - {{ temp_dir }}/{{ member[input_type] | basename }}
@@ -37,7 +43,7 @@
       -R {{ constants.maricopa[source_pipeline].reference_fa }} \
       -O {{ temp_dir }}/{{ family.name }}.g.vcf.gz
 
-- name: gatk_genotype_combined_gvcf_{{ family.name }}
+- name: gatk_genotype_combined_gvcf_{{ family.name }}_{{ family.gltype }}
   input: {{ temp_dir }}/{{ family.name }}.g.vcf.gz
   output: {{ combined_vcf }}
   cpus: 4
@@ -55,9 +61,9 @@
       -V {{ temp_dir }}/{{ family.name }}.g.vcf.gz \
       -O {{ combined_vcf }}
 
-{% if tasks.joint_variant_calling_gatk_vqsr | default(true) %}
+{% if tasks[taskPrefix+"_joint_variant_calling_gatk_vqsr"] | default(true) %}
 
-- name: gatk_vqsr_{{ family.name }}
+- name: gatk_vqsr_{{ family.name }}_{{ family.gltype }}
   input: {{ combined_vcf }}
   output: 
     - {{ vqsr_vcf }}
@@ -95,9 +101,9 @@
 
 {% endif %}
 
-{% if tasks.joint_variant_calling_gatk_cnnscorevariants | default(true) %}
+{% if tasks[taskPrefix+"_joint_variant_calling_gatk_cnnscorevariants"] | default(true) %}
 
-- name: gatk_cnnscorevariants_{{ family.name }}
+- name: gatk_cnnscorevariants_{{ family.name }}_{{ family.gltype }}
   input: {{ combined_vcf }}
   output: {{ cnn_vcf }}
   cpus: 8
@@ -118,11 +124,11 @@
 
 {% endif %}
 
-{% if tasks.joint_variant_calling_somalier | default(true) %}
+{% if tasks[taskPrefix+"_joint_variant_calling_gatk_somalier"] | default(true) %}
   {{- somalier(family, 'gatk', combined_vcf) }}
 {% endif %}
 
-{% if tasks.joint_variant_calling_bcftools_filter | default(true) %}
+{% if tasks[taskPrefix+"_joint_variant_calling_gatk_bcftools_filter"] | default(true) %}
   {% set filtered_vcf %}{{ results_dir }}/{{ family.name }}.hc.filtered.bcf{% endset %}
   {{- dnm_filter(family, combined_vcf, filtered_vcf, 'gatk') }}
 {% endif %}
