@@ -2,7 +2,7 @@ __pipeline__:
   name: maricopa
   main: main.jst
   description: Family and cohort analysis suite
-  version: v0.0.1
+  version: development
 constants:
   tools:
     base:
