@@ -16,7 +16,6 @@
     {% endif %}
     {% endfor %}
   tags: [rsync,]
-  sbatch_args: ['-p', 'overflow,defq']
   cpus: 6
   walltime: "4:00:00"
   container: {{ constants.tools.base.container }}
